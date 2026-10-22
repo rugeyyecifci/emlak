@@ -1,0 +1,9 @@
+allowBuilds:
+  sharp: true
+  esbuild: true
+  msgpackr-extract: true
+strictDepBuilds: false
+onlyBuiltDependencies:
+  - sharp
+  - esbuild
+  - msgpackr-extract

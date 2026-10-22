@@ -1,5 +1,13 @@
 import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {};
+const API_URL = process.env.API_URL ?? 'http://localhost:4000';
+
+const nextConfig: NextConfig = {
+  // Tarayıcı api'ye /api/... üzerinden ulaşır. Böylece site ve api aynı adreste
+  // görünür, giriş çerezi sorunsuz çalışır.
+  async rewrites() {
+    return [{ source: '/api/:path*', destination: `${API_URL}/:path*` }];
+  },
+};
 
 export default nextConfig;

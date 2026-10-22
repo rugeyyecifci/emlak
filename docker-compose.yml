@@ -47,6 +47,19 @@ services:
     depends_on: [redis]
     restart: unless-stopped
 
+  image-worker:
+    build: ./workers/image
+    environment:
+      REDIS_HOST: redis
+      S3_ENDPOINT: http://storage:8333
+      S3_BUCKET: ilanlar
+      DATABASE_URL: postgresql://emlak:${DB_PASS}@db:5432/emlak
+    depends_on:
+      redis: { condition: service_started }
+      storage: { condition: service_started }
+      db: { condition: service_healthy }
+    restart: unless-stopped
+
 volumes:
   pgdata: {}
   files: {}
