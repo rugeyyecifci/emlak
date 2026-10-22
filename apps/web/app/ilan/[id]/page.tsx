@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Gallery from '@/components/Gallery';
@@ -7,7 +8,19 @@ import { formatPrice, getListing, mediaUrl, typeLabel } from '@/lib/api';
 // WhatsApp numarası: ofisinkiyle değiştir (90 ile başlayan, boşluksuz)
 const WHATSAPP = '905000000000';
 
-export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
+type Props = { params: Promise<{ id: string }> };
+
+// Google ve WhatsApp paylaşımında görünen başlık, açıklama ve fotoğraf
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const l = await getListing((await params).id).catch(() => null);
+  if (!l) return { title: 'İlan bulunamadı' };
+  const title = `${l.title} – ${formatPrice(l.price)} | Emlak Ofisi`;
+  const description = [typeLabel(l.type), l.rooms, l.areaM2 && `${l.areaM2} m²`, l.district].filter(Boolean).join(' · ');
+  const image = mediaUrl(l.media?.[0]?.largeKey);
+  return { title, description, openGraph: { title, description, images: image ? [image] : [] } };
+}
+
+export default async function ListingPage({ params }: Props) {
   const { id } = await params;
   const l = await getListing(id);
   if (!l) notFound();
@@ -19,8 +32,8 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   const waText = encodeURIComponent(`Merhaba, "${l.title}" (ilan no: ${l.id}) hakkında bilgi almak istiyorum.`);
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <Link href="/" className="text-sm text-teal-700">← Tüm ilanlar</Link>
+    <main className="mx-auto max-w-6xl px-4 py-6">
+      <Link href="/ilanlar" className="text-sm text-teal-700">← Tüm ilanlar</Link>
 
       <div className="mt-4 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
