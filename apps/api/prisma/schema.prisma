@@ -1,0 +1,24 @@
+// Veritabanı tabloları burada tanımlanır.
+// Değişiklik yapınca: pnpm prisma migrate dev --name degisiklik-adi
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Listing {
+  id        Int      @id @default(autoincrement())
+  title     String
+  type      String   // "satilik" | "kiralik"
+  price     Int
+  rooms     String?
+  areaM2    Int?
+  district  String?
+  status    String   @default("yayinda")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

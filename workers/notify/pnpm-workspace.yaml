@@ -1,0 +1,6 @@
+# pnpm ayarları: kurulumda script çalıştırmasına izin verilen paketler
+allowBuilds:
+  msgpackr-extract: true
+  esbuild: true
+# Listede olmayan bir paket script isterse kurulum durmasın, sadece uyarsın
+strictDepBuilds: false

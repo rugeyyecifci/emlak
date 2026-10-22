@@ -1,0 +1,53 @@
+services:
+  # ---------- VERİ KATMANI ----------
+  db:
+    # postgis/postgis'in Apple Silicon (arm64) sürümü yok; bu imaj aynı şeyin çok mimarili yapısı
+    image: imresamu/postgis:16-3.4
+    environment:
+      POSTGRES_DB: emlak
+      POSTGRES_USER: emlak
+      POSTGRES_PASSWORD: ${DB_PASS}
+    # Mac'te 5432'yi başka bir PostgreSQL kullanıyor olabilir, çakışmasın diye 5433
+    ports: ["5433:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U emlak -d emlak"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes: [pgdata:/var/lib/postgresql/data]
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    restart: unless-stopped
+
+  # Fotoğraf/PDF deposu. S3 uyumlu (MinIO artık ücretsiz imaj yayınlamıyor).
+  # S3 adresi: http://localhost:8333   Dosya tarayıcısı: http://localhost:8888
+  storage:
+    image: chrislusf/seaweedfs:latest
+    command: server -dir=/data -s3 -s3.port=8333 -filer
+    ports: ["8333:8333", "8888:8888"]
+    volumes: [files:/data]
+    restart: unless-stopped
+
+  search:
+    image: getmeili/meilisearch:v1.11
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_KEY}
+    ports: ["7700:7700"]
+    volumes: [searchdata:/meili_data]
+    restart: unless-stopped
+
+  # ---------- WORKER KATMANI ----------
+  notify-worker:
+    build: ./workers/notify
+    environment:
+      REDIS_HOST: redis
+    depends_on: [redis]
+    restart: unless-stopped
+
+volumes:
+  pgdata: {}
+  files: {}
+  searchdata: {}

@@ -1,0 +1,7 @@
+# pnpm ayarları: kurulumda script çalıştırmasına izin verilen paketler
+allowBuilds:
+  sharp: true
+  "@tailwindcss/oxide": true
+  unrs-resolver: true
+# Listede olmayan bir paket script isterse kurulum durmasın, sadece uyarsın
+strictDepBuilds: false
