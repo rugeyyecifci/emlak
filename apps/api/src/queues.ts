@@ -12,3 +12,4 @@ const defaultJobOptions = {
 
 export const listingChangedQueue = new Queue('listing.changed', { connection, defaultJobOptions });
 export const mediaQueue = new Queue('media.process', { connection, defaultJobOptions });
+export const leadQueue = new Queue('lead.created', { connection, defaultJobOptions });

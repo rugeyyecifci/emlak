@@ -33,6 +33,7 @@ model Listing {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   media       Media[]
+  leads       Lead[]
 }
 
 // İlan fotoğrafları. Orijinal yüklenir, image-worker küçük/büyük WebP üretir.
@@ -48,4 +49,24 @@ model Media {
   createdAt   DateTime @default(now())
 
   @@index([listingId])
+}
+
+// Siteden gelen talepler (gösterim isteği, bilgi isteği, genel iletişim)
+model Lead {
+  id            Int       @id @default(autoincrement())
+  name          String
+  phone         String
+  email         String?
+  message       String?
+  preferredTime String?
+  kind          String    @default("gosterim") // "gosterim" | "bilgi" | "iletisim"
+  status        String    @default("yeni")     // "yeni" | "arandi" | "gosterim" | "kapandi"
+  note          String?   // emlakçının kendi notu
+  listingId     Int?
+  listing       Listing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  kvkkAt        DateTime  // aydınlatma metnini onayladığı an
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, createdAt])
 }
