@@ -10,15 +10,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Panele giriş yapan emlakçı / danışman
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("danisman") // "sahip" | "danisman"
+  createdAt    DateTime @default(now())
+}
+
 model Listing {
-  id        Int      @id @default(autoincrement())
-  title     String
-  type      String   // "satilik" | "kiralik"
-  price     Int
-  rooms     String?
-  areaM2    Int?
-  district  String?
-  status    String   @default("yayinda")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  type        String   // "satilik" | "kiralik"
+  price       Int
+  rooms       String?
+  areaM2      Int?
+  district    String?
+  status      String   @default("yayinda") // "taslak" | "yayinda" | "kapandi"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  media       Media[]
+}
+
+// İlan fotoğrafları. Orijinal yüklenir, image-worker küçük/büyük WebP üretir.
+model Media {
+  id          Int      @id @default(autoincrement())
+  listingId   Int
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  originalKey String
+  thumbKey    String?
+  largeKey    String?
+  sortOrder   Int      @default(0)
+  status      String   @default("isleniyor") // "isleniyor" | "hazir" | "hata"
+  createdAt   DateTime @default(now())
+
+  @@index([listingId])
 }
