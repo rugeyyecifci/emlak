@@ -1,0 +1,163 @@
+// Emlak sitesi - veritabanı tasarımı (PostgreSQL)
+// dbdiagram.io'ya yapıştırarak düzenleyebilirsin.
+
+Table users {
+  id int [pk, increment]
+  email varchar [unique, not null]
+  name varchar [not null]
+  phone varchar
+  password_hash varchar [not null]
+  role varchar [not null, note: 'sahip | danisman']
+  created_at timestamp [default: `now()`]
+}
+
+Table owners {
+  id int [pk, increment]
+  name varchar [not null]
+  phone varchar [not null]
+  email varchar
+  kvkk_at timestamp [note: 'KVKK onay tarihi']
+  note text
+}
+
+Table listings {
+  id int [pk, increment]
+  title varchar [not null]
+  description text
+  type varchar [not null, note: 'satilik | kiralik']
+  property_type varchar [not null, note: 'daire | mustakil | arsa | isyeri']
+  price int [not null]
+  rooms varchar
+  area_m2 int
+  floor int
+  building_age int
+  heating varchar
+  district varchar
+  address varchar
+  location geography [note: 'PostGIS nokta: harita için']
+  status varchar [not null, default: 'taslak', note: 'taslak | yayinda | kapandi']
+  agent_id int [ref: > users.id, note: 'sorumlu danışman']
+  owner_id int [ref: > owners.id]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+  published_at timestamp
+  indexes {
+    (status, type, district)
+  }
+}
+
+Table features {
+  id int [pk, increment]
+  name varchar [unique, not null, note: 'balkon, otopark, eşyalı, asansör...']
+}
+
+Table listing_features {
+  listing_id int [ref: > listings.id]
+  feature_id int [ref: > features.id]
+  indexes {
+    (listing_id, feature_id) [pk]
+  }
+}
+
+Table media {
+  id int [pk, increment]
+  listing_id int [not null, ref: > listings.id]
+  original_key varchar [not null]
+  thumb_key varchar
+  large_key varchar
+  sort_order int [default: 0]
+  status varchar [default: 'isleniyor', note: 'isleniyor | hazir | hata']
+}
+
+Table eids_authorizations {
+  id int [pk, increment]
+  listing_id int [unique, not null, ref: - listings.id]
+  tasinmaz_no varchar [not null]
+  starts_on date [not null]
+  ends_on date [not null]
+}
+
+Table price_history {
+  id int [pk, increment]
+  listing_id int [not null, ref: > listings.id]
+  old_price int
+  new_price int
+  changed_by int [ref: > users.id]
+  changed_at timestamp [default: `now()`]
+}
+
+Table listing_views {
+  listing_id int [ref: > listings.id]
+  day date
+  count int [default: 0]
+  indexes {
+    (listing_id, day) [pk]
+  }
+}
+
+Table leads {
+  id int [pk, increment]
+  name varchar [not null]
+  phone varchar [not null]
+  email varchar
+  message text
+  preferred_time varchar
+  kind varchar [note: 'gosterim | bilgi | iletisim']
+  source varchar [note: 'site | whatsapp | vitrin_ekrani']
+  status varchar [default: 'yeni', note: 'yeni | arandi | gosterim | kapandi']
+  note text
+  listing_id int [ref: > listings.id]
+  assigned_to int [ref: > users.id]
+  kvkk_at timestamp [not null]
+  created_at timestamp [default: `now()`]
+  indexes {
+    (status, created_at)
+  }
+}
+
+Table showings {
+  id int [pk, increment]
+  lead_id int [ref: > leads.id]
+  listing_id int [not null, ref: > listings.id]
+  agent_id int [ref: > users.id]
+  starts_at timestamp [not null]
+  result_note text
+}
+
+Table saved_searches {
+  id int [pk, increment]
+  name varchar [not null]
+  phone varchar [not null]
+  email varchar
+  filters jsonb [not null, note: 'tür, semt, oda, fiyat aralığı']
+  is_active boolean [default: true]
+  kvkk_at timestamp [not null]
+  created_at timestamp [default: `now()`]
+}
+
+Table search_matches {
+  saved_search_id int [ref: > saved_searches.id]
+  listing_id int [ref: > listings.id]
+  notified_at timestamp
+  indexes {
+    (saved_search_id, listing_id) [pk]
+  }
+}
+
+Table devices {
+  id int [pk, increment]
+  name varchar [not null, note: 'ör. Vitrin ekranı']
+  token_hash varchar [not null]
+  opens_at time
+  closes_at time
+  last_seen_at timestamp
+}
+
+Table device_listings {
+  device_id int [ref: > devices.id]
+  listing_id int [ref: > listings.id]
+  sort_order int
+  indexes {
+    (device_id, listing_id) [pk]
+  }
+}

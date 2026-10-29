@@ -10,7 +10,14 @@ async function bootstrap() {
   app.use(cookieParser());
   app.enableCors({ origin: 'http://localhost:3000', credentials: true });
 
-  await ensureBucket();
+  try {
+    await ensureBucket();
+  } catch {
+    console.error(
+      "\n⚠️  Dosya deposuna (localhost:8333) ulaşılamadı. Docker çalışıyor mu?\n" +
+        "   OrbStack'i açıp proje klasöründe 'docker compose up -d' çalıştır, sonra api'yi yeniden başlat.\n",
+    );
+  }
 
   const port = Number(process.env.PORT ?? 4000);
   await app.listen(port);
